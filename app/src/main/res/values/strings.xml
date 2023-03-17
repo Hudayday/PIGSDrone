@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">OverwatchDrone</string>
+    <string name="app_name">PIGSDrone</string>
     <string name="title_activity_maps">MapsActivity</string>
 </resources>

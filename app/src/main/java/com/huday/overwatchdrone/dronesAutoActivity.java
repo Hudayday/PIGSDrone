@@ -72,9 +72,9 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
     //Drone Marker
     int height = 80;
     int width = 80;
-    BitmapDrawable bitmapdraw;
-    Bitmap b;
-    Bitmap droneMapMarker;
+    BitmapDrawable bitmapdraw, bitmapDrone1, bitmapDrone2, bitmapDrone3;
+    Bitmap b, b1, b2, b3;
+    Bitmap droneMapMarker, drone1Marker, drone2Marker, drone3Marker;
 
     //buttons
     Button btnConnectSystem;
@@ -129,6 +129,19 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         bitmapdraw = (BitmapDrawable)getResources().getDrawable(R.mipmap.drone_marker);
         b = bitmapdraw.getBitmap();
         droneMapMarker = Bitmap.createScaledBitmap(b, width, height, false);
+
+        bitmapDrone1 = (BitmapDrawable)getResources().getDrawable(R.mipmap.drone1);
+        b1 = bitmapdraw.getBitmap();
+        drone1Marker = Bitmap.createScaledBitmap(b1, width, height, false);
+
+        bitmapDrone2 = (BitmapDrawable)getResources().getDrawable(R.mipmap.drone2);
+        b2 = bitmapdraw.getBitmap();
+        drone2Marker = Bitmap.createScaledBitmap(b2, width, height, false);
+
+        bitmapDrone3 = (BitmapDrawable)getResources().getDrawable(R.mipmap.drone3);
+        b3 = bitmapdraw.getBitmap();
+        drone3Marker = Bitmap.createScaledBitmap(b3, width, height, false);
+
 
         //TEMP
         COM = "0";
@@ -449,7 +462,7 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         //longt = Double.parseDouble(GPS_LON);
         // Debug Info
         debug1.setText("ACK: "+ACK);
-        debug2.setText("CON: "+msg);
+        debug2.setText("CON: "+CON);
         debug3.setText("GPS_LAT: "+GPS_LAT);
         debug4.setText("GPS_LON: "+GPS_LON);
         changeBatteryInfo(BATTERY);
@@ -470,7 +483,7 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
                 if(Drone1Marker!=null)
                     Drone1Marker.remove();
                 Drone1Marker = mMap.addMarker(new MarkerOptions()
-                        .icon(BitmapDescriptorFactory.fromBitmap(droneMapMarker))
+                        .icon(BitmapDescriptorFactory.fromBitmap(drone1Marker))
                         .snippet("Drone 1 Location")
                         .position(drone1LatLng).title("Current Drone 1 Location"));
                 break;
@@ -481,7 +494,7 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
                 if(Drone2Marker!=null)
                     Drone2Marker.remove();
                 Drone2Marker = mMap.addMarker(new MarkerOptions()
-                        .icon(BitmapDescriptorFactory.fromBitmap(droneMapMarker))
+                        .icon(BitmapDescriptorFactory.fromBitmap(drone2Marker))
                         .snippet("Drone 2 Location")
                         .position(drone2LatLng).title("Current Drone 2 Location"));
                 break;
@@ -492,7 +505,7 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
                 if(Drone3Marker!=null)
                     Drone3Marker.remove();
                 Drone3Marker = mMap.addMarker(new MarkerOptions()
-                        .icon(BitmapDescriptorFactory.fromBitmap(droneMapMarker))
+                        .icon(BitmapDescriptorFactory.fromBitmap(drone3Marker))
                         .snippet("Drone 3 Location")
                         .position(drone3LatLng).title("Current Drone 3 Location"));
                 break;

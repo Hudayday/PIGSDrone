@@ -3,6 +3,8 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/huday/Desktop/OverwatchDrone/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.30811965811965814" />
+        <entry key="..\:/Users/huday/Desktop/OverwatchDrone/app/src/main/res/drawable/ic_launcher_background.xml" value="0.30811965811965814" />
         <entry key="..\:/Users/huday/Desktop/OverwatchDrone/app/src/main/res/layout/activity_drone_manual.xml" value="0.2" />
         <entry key="..\:/Users/huday/Desktop/OverwatchDrone/app/src/main/res/layout/activity_drones_auto.xml" value="0.2" />
         <entry key="..\:/Users/huday/Desktop/OverwatchDrone/app/src/main/res/layout/activity_main.xml" value="0.2" />
