@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".dronesAutoActivity">
+
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Place Holder Drone Auto"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <FrameLayout
+        android:id="@+id/frameLayout"
+        android:layout_width="match_parent"
+        android:layout_height="440dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0">
+
+        <fragment
+            android:id="@+id/map2"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:context=".MapsActivity" />
+
+    </FrameLayout>
+
+
+    <LinearLayout
+
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="100dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/textDebug1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="right"
+            android:text="ACK" />
+
+        <TextView
+            android:id="@+id/textDebug2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="right"
+            android:text="CON" />
+
+        <TextView
+            android:id="@+id/textDebug3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="right"
+            android:text="GPS_LAT" />
+
+        <TextView
+            android:id="@+id/textDebug4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="right"
+            android:text="GPS_LON" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/frameLayoutcamera"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/frameLayout"
+        app:layout_constraintVertical_bias="0.0">
+
+        <WebView
+            android:id="@+id/droneCam2"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.6"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/batteryView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="@+id/droneCam2"
+            app:layout_constraintTop_toTopOf="@+id/droneCam2"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="8dp"
+            android:text="Battery Level: 0%" />
+
+
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/frameLayout2"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/frameLayoutcamera"
+        app:layout_constraintVertical_bias="0.0">
+        <TableLayout
+
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+
+            android:orientation="vertical">
+            <TableLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:shrinkColumns="1"
+            android:stretchColumns="*">
+                <TableRow>
+                    <TextView
+                        android:id="@+id/user_loc"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="000,000"
+                        android:gravity="center"
+                        app:layout_constraintHorizontal_bias="0.0"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <TextView
+                        android:id="@+id/drone_1_loc"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="000,000"
+                        android:gravity="center"
+                        app:layout_constraintHorizontal_bias="0.0"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+                </TableRow>
+
+                <TableRow>
+                    <TextView
+                        android:id="@+id/drone_2_loc"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="000,000"
+                        android:gravity="center"
+                        app:layout_constraintHorizontal_bias="0.0"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <TextView
+                        android:id="@+id/drone_3_loc"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="000,000"
+                        android:gravity="center"
+                        app:layout_constraintHorizontal_bias="0.0"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+                </TableRow>
+            </TableLayout>
+        </TableLayout>
+        <TableLayout
+
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+
+            android:orientation="vertical">
+            <TableLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:shrinkColumns="1"
+                android:stretchColumns="*">
+                <TableRow>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="User"
+                        app:layout_constraintHorizontal_bias="0.0"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Dr 1"
+                        app:layout_constraintHorizontal_bias="0.0"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+                </TableRow>
+
+                <TableRow>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Dr 2"
+                        app:layout_constraintHorizontal_bias="0.0"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Dr 3"
+                        app:layout_constraintHorizontal_bias="0.0"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+                </TableRow>
+
+
+            </TableLayout>
+        </TableLayout>
+    </FrameLayout>
+
+
+
+    <FrameLayout
+        android:id="@+id/frameLayout3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/frameLayout2"
+        app:layout_constraintVertical_bias="0.0">
+
+    <TableLayout
+
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+
+        android:orientation="vertical">
+        <TableLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:shrinkColumns="1"
+            android:stretchColumns="*">
+            <TableRow>
+
+                <Button
+                    android:id="@+id/btnsw1"
+                    android:layout_width="wrap_content"
+                    app:backgroundTint="@android:color/holo_purple"
+                    android:layout_height="wrap_content"
+                    android:text="Drone1" />
+                <Button
+                    android:id="@+id/btnsw2"
+                    android:layout_width="wrap_content"
+                    app:backgroundTint="@android:color/holo_green_light"
+                    android:layout_height="wrap_content"
+                    android:text="Drone2"/>
+                <Button
+                    android:id="@+id/btnsw3"
+                    android:layout_height="wrap_content"
+                    app:backgroundTint="@android:color/holo_green_dark"
+                    android:layout_width="wrap_content"
+                    android:text="Drone3"/>
+
+
+            </TableRow>
+
+
+        </TableLayout>
+
+        <TableLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:shrinkColumns="1"
+            android:stretchColumns="2">
+            <TableRow>
+
+                <Button
+                    android:id="@+id/btnConnectSystem"
+
+                    android:layout_width="wrap_content"
+                    app:backgroundTint="@android:color/holo_blue_dark"
+                    android:layout_height="wrap_content"
+                    android:text="Connect" />
+                <Button
+                    android:id="@+id/btnC7"
+                    android:layout_width="wrap_content"
+                    app:backgroundTint="@android:color/holo_orange_dark"
+                    android:layout_height="wrap_content"
+                    android:text="TAKEOFF"/>
+                <Button
+                    android:id="@+id/btnC1"
+                    android:layout_width="wrap_content"
+                    app:backgroundTint="@android:color/holo_orange_light"
+                    android:layout_height="wrap_content"
+                    android:text="LAND"/>
+                <Button
+                    android:id="@+id/btnC2"
+                    android:layout_height="wrap_content"
+                    app:backgroundTint="@android:color/holo_red_light"
+                    android:layout_width="wrap_content"
+                    android:text="STOP"/>
+
+
+            </TableRow>
+
+
+        </TableLayout>
+
+        <TableLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:shrinkColumns="1"
+            android:stretchColumns="*">
+
+            <TableRow>
+
+                <Button
+                    android:id="@+id/btnC3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="70dp"
+                    app:backgroundTint="@color/dodger_blue"
+                    android:text="ORBIT"/>
+                <Button
+                    android:id="@+id/btnC4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="70dp"
+                    app:backgroundTint="@color/steel_blue"
+                    android:text="EXPLORE"
+                    />
+                <Button
+                    android:id="@+id/btnC5"
+                    android:layout_height="70dp"
+                    android:layout_width="wrap_content"
+                    app:backgroundTint="@color/corn_flower_blue"
+                    android:text="RADAR"/>
+
+                <Button
+                    android:id="@+id/btnC6"
+                    android:layout_width="wrap_content"
+                    android:layout_height="70dp"
+
+                    android:text="TRACKING"
+                    app:backgroundTint="@color/deep_sky_blue" />
+            </TableRow>
+
+
+        </TableLayout>
+
+    </TableLayout>
+    </FrameLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/switchButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.05"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.03"
+        app:srcCompat="@android:drawable/stat_notify_sync" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

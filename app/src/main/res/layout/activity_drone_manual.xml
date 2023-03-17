@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".dronesManualActivity">
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Place Holder Drone Manual"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <FrameLayout
+        android:id="@+id/frameLayoutm0"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0">
+
+        <fragment
+            android:id="@+id/mapm0"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:context=".MapsActivity" />
+
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/frameLayoutm1"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/frameLayoutm0"
+        app:layout_constraintVertical_bias="0.0">
+
+        <TextView
+            android:id="@+id/textViewm6"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Place Holder Drone Camera"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/frameLayoutm2"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/frameLayoutm1"
+        app:layout_constraintVertical_bias="0.0">
+
+        <TextView
+            android:id="@+id/textViewm7"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Place Holder Drone Info"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/frameLayoutm3"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/frameLayoutm2"
+        android:gravity="center_vertical"
+        app:layout_constraintVertical_bias="0.0">
+        <TableLayout
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:orientation="vertical">
+
+
+            <TableRow android:layout_height="wrap_content"
+                android:gravity="center">
+
+                <Switch
+                    android:id="@+id/switch2"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="Drone Selection" />
+
+                <Switch
+                    android:id="@+id/switch3"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="Camera Mode" />
+            </TableRow>
+
+
+
+        </TableLayout>
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/frameLayoutm4"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="@+id/frameLayoutm3"
+        app:layout_constraintTop_toBottomOf="@+id/frameLayoutm3"
+        app:layout_constraintVertical_bias="0.0">
+
+        <TextView
+            android:id="@+id/textViewm3"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Place Holder Drone Manual Control"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/imageViewm1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:srcCompat="@mipmap/dronecontrol2" />
+
+    </FrameLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/switchButton2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.95"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.95"
+        app:srcCompat="@android:drawable/stat_notify_sync"
+        tools:ignore="SpeakableTextPresentCheck" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

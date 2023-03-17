@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/Users/huday/Desktop/OverwatchDrone/app/src/main/res/layout/activity_drone_manual.xml" value="0.2" />
+        <entry key="..\:/Users/huday/Desktop/OverwatchDrone/app/src/main/res/layout/activity_drones_auto.xml" value="0.2" />
+        <entry key="..\:/Users/huday/Desktop/OverwatchDrone/app/src/main/res/layout/activity_main.xml" value="0.2" />
+        <entry key="..\:/Users/huday/Desktop/OverwatchDrone/app/src/main/res/layout/activity_map.xml" value="0.1" />
+        <entry key="..\:/Users/huday/Desktop/OverwatchDrone/app/src/main/res/layout/activity_maps.xml" value="0.26965811965811964" />
+        <entry key="..\:/Users/huday/Desktop/OverwatchDrone/app/src/main/res/layout/activity_setting.xml" value="0.42527173913043476" />
+        <entry key="..\:/Users/huday/Desktop/OverwatchDrone/app/src/main/res/layout/activity_wifi_direct.xml" value="0.2" />
+        <entry key="..\:/Users/huday/Desktop/OverwatchDrone/app/src/main/res/xml/network_security_config.xml" value="0.34444444444444444" />
+      </map>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="Android Studio default JDK" project-jdk-type="JavaSDK">
+    <output url="file://$PROJECT_DIR$/build/classes" />
+  </component>
+  <component name="ProjectType">
+    <option name="id" value="Android" />
+  </component>
+</project>
