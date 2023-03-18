@@ -53,8 +53,8 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
     final private static int MY_PERMISSION_ACCESS_BACKGROUND_LOCATION = 1919;
 
     final static String drone1url = "http://192.168.0.100:8081/cam.mjpg";
-    final static String drone2url = "http://192.168.0.209:8081/cam.mjpg";
-    final static String drone3url = "http://192.168.0.101:8081/cam.mjpg";
+    final static String drone2url = "http://192.168.0.100:8082/cam.mjpg";
+    final static String drone3url = "http://192.168.0.100:8083/cam.mjpg";
 
     private GoogleMap mMap;
     LocationManager locationManager;
@@ -106,7 +106,11 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         //initializeLocationManager();
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        final FloatingActionButton switchButton = (FloatingActionButton) this.findViewById(R.id.switchButton);
+        final FloatingActionButton focusButton = (FloatingActionButton) this.findViewById(R.id.focusButton);
+        final FloatingActionButton drone1FocusButton = (FloatingActionButton) this.findViewById(R.id.drone1FocusButton);
+        final FloatingActionButton drone2FocusButton = (FloatingActionButton) this.findViewById(R.id.drone2FocusButton);
+        final FloatingActionButton drone3FocusButton = (FloatingActionButton) this.findViewById(R.id.drone3FocusButton);
+
         btnConnectSystem = (Button) this.findViewById(R.id.btnConnectSystem);
         bc1 = (Button) this.findViewById(R.id.btnC1);
         bc2 = (Button) this.findViewById(R.id.btnC2);
@@ -122,6 +126,8 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
 
         //droneCam1 = (WebView) findViewById(R.id.droneCam1);
         droneCam2 = (WebView) findViewById(R.id.droneCam2);
+        droneCam2.getSettings().setLoadWithOverviewMode(true);
+        droneCam2.getSettings().setUseWideViewPort(true);
         //droneCam1.loadUrl("http://192.168.0.100:8081/cam.mjpg");
         droneCam2.loadUrl(drone1url);
 
@@ -131,15 +137,15 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         droneMapMarker = Bitmap.createScaledBitmap(b, width, height, false);
 
         bitmapDrone1 = (BitmapDrawable)getResources().getDrawable(R.mipmap.drone1);
-        b1 = bitmapdraw.getBitmap();
+        b1 = bitmapDrone1.getBitmap();
         drone1Marker = Bitmap.createScaledBitmap(b1, width, height, false);
 
         bitmapDrone2 = (BitmapDrawable)getResources().getDrawable(R.mipmap.drone2);
-        b2 = bitmapdraw.getBitmap();
+        b2 = bitmapDrone2.getBitmap();
         drone2Marker = Bitmap.createScaledBitmap(b2, width, height, false);
 
         bitmapDrone3 = (BitmapDrawable)getResources().getDrawable(R.mipmap.drone3);
-        b3 = bitmapdraw.getBitmap();
+        b3 = bitmapDrone3.getBitmap();
         drone3Marker = Bitmap.createScaledBitmap(b3, width, height, false);
 
 
@@ -172,13 +178,47 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
 
-        switchButton.setOnClickListener(new View.OnClickListener() {
+        focusButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //Intent intent = new Intent(dronesAutoActivity.this, dronesManualActivity.class);
                 //startActivity(intent);
-                autoCenter = !autoCenter;
-                Toast.makeText(dronesAutoActivity.this, "Auto center switched", Toast.LENGTH_LONG).show();
+                if(cur != null)
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(cur));
+                Toast.makeText(dronesAutoActivity.this, "Focus on user", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        drone1FocusButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Intent intent = new Intent(dronesAutoActivity.this, dronesManualActivity.class);
+                //startActivity(intent);
+                if(drone1LatLng != null)
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(drone1LatLng));
+                Toast.makeText(dronesAutoActivity.this, "Focus on Drone 1", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        drone2FocusButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Intent intent = new Intent(dronesAutoActivity.this, dronesManualActivity.class);
+                //startActivity(intent);
+                if(drone2LatLng != null)
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(drone2LatLng));
+                Toast.makeText(dronesAutoActivity.this, "Focus on Drone 2", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        drone3FocusButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Intent intent = new Intent(dronesAutoActivity.this, dronesManualActivity.class);
+                //startActivity(intent);
+                if(drone3LatLng != null)
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(drone3LatLng));
+                Toast.makeText(dronesAutoActivity.this, "Focus on Drone 3", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -370,6 +410,9 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         user_loc.setText(String.format("%.4f",latitude)+","+String.format("%.4f",longitude));
         P_GPS_LON = (Double.toString(longitude)+"00000").substring(0,11);
         P_GPS_LAT = (Double.toString(latitude)+"00000").substring(0,11);
+
+        cur = new LatLng(location.getLatitude(),location.getLongitude());
+        currentLocation = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)).position(cur).title("User Location"));
     }
 
 
@@ -392,9 +435,9 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         cur = new LatLng(latitude, longitude);
         currentLocation = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)).position(cur).title("User Location"));
 
-        if (autoCenter) {
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(cur));
-        }
+        //if (autoCenter) {
+        //    mMap.moveCamera(CameraUpdateFactory.newLatLng(cur));
+        //}
     }
 
     @Override
@@ -484,7 +527,7 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
                     Drone1Marker.remove();
                 Drone1Marker = mMap.addMarker(new MarkerOptions()
                         .icon(BitmapDescriptorFactory.fromBitmap(drone1Marker))
-                        .snippet("Drone 1 Location")
+                        .snippet("Drone 1")
                         .position(drone1LatLng).title("Current Drone 1 Location"));
                 break;
             }
@@ -495,7 +538,7 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
                     Drone2Marker.remove();
                 Drone2Marker = mMap.addMarker(new MarkerOptions()
                         .icon(BitmapDescriptorFactory.fromBitmap(drone2Marker))
-                        .snippet("Drone 2 Location")
+                        .snippet("Drone 2")
                         .position(drone2LatLng).title("Current Drone 2 Location"));
                 break;
             }
@@ -506,7 +549,7 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
                     Drone3Marker.remove();
                 Drone3Marker = mMap.addMarker(new MarkerOptions()
                         .icon(BitmapDescriptorFactory.fromBitmap(drone3Marker))
-                        .snippet("Drone 3 Location")
+                        .snippet("Drone 3")
                         .position(drone3LatLng).title("Current Drone 3 Location"));
                 break;
             }
