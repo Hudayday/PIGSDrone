@@ -1,5 +1,7 @@
 package com.huday.overwatchdrone;
 
+import static android.content.ContentValues.TAG;
+
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -17,6 +19,7 @@ import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -38,6 +41,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.BufferedReader;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -110,6 +114,7 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         final FloatingActionButton drone1FocusButton = (FloatingActionButton) this.findViewById(R.id.drone1FocusButton);
         final FloatingActionButton drone2FocusButton = (FloatingActionButton) this.findViewById(R.id.drone2FocusButton);
         final FloatingActionButton drone3FocusButton = (FloatingActionButton) this.findViewById(R.id.drone3FocusButton);
+        final FloatingActionButton imageCaptureButton = (FloatingActionButton) this.findViewById(R.id.imageCaptureButton);
 
         btnConnectSystem = (Button) this.findViewById(R.id.btnConnectSystem);
         bc1 = (Button) this.findViewById(R.id.btnC1);
@@ -219,6 +224,26 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
                 if(drone3LatLng != null)
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(drone3LatLng));
                 Toast.makeText(dronesAutoActivity.this, "Focus on Drone 3", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        imageCaptureButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Bitmap bitmap = droneCam2.getDrawingCache();
+                try {
+                    String fileName = Environment.getExternalStorageDirectory().getPath() + "/webview_screenshot.jpg";
+                    FileOutputStream fos = new FileOutputStream(fileName);
+                    //get bitmap
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 70, fos);
+                    bitmap.recycle();
+                    fos.close();
+                    Toast.makeText(dronesAutoActivity.this, "image saved", Toast.LENGTH_LONG).show();
+                } catch (Exception e) {
+                    Log.e(TAG, e.getMessage());
+                } finally {
+                    bitmap.recycle();
+                }
             }
         });
 
