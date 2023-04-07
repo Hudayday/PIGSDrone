@@ -12,10 +12,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -41,6 +43,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -56,7 +60,10 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
     final private static int MY_PERMISSION_ACCESS_FINE_LOCATION = 514;
     final private static int MY_PERMISSION_ACCESS_BACKGROUND_LOCATION = 1919;
 
+    final private static int NUMBER_OF_DRONES = 3;
+
     final static String drone1url = "http://192.168.0.100:8081/cam.mjpg";
+    //final static String drone1url = "https://www.huday.su";
     final static String drone2url = "http://192.168.0.100:8082/cam.mjpg";
     final static String drone3url = "http://192.168.0.100:8083/cam.mjpg";
 
@@ -68,10 +75,16 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
     private boolean autoCenter = true;
     double lat, longt;
 
-    private String ACK,BATTERY,GPS_LAT,GPS_LON,GPS_ALT,YAW,CON; //from drone
+    private String[] ACK,BATTERY,GPS_LAT,GPS_LON,GPS_ALT,YAW,CON; //from drone
     private String COM,RADIUS,P_GPS_LAT,P_GPS_LON; //from phone
 
     String locationProvider;
+
+    //drone log recorder
+    StringBuffer csvFlightData;
+
+    //Camera 0, 1, 2
+    int currentDrone;
 
     //Drone Marker
     int height = 80;
@@ -107,6 +120,13 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_drones_auto);
 
+        //write file
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                && checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1000);
+        }
+
         //initializeLocationManager();
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
@@ -135,6 +155,7 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         droneCam2.getSettings().setUseWideViewPort(true);
         //droneCam1.loadUrl("http://192.168.0.100:8081/cam.mjpg");
         droneCam2.loadUrl(drone1url);
+        currentDrone = 0;
 
         //Marker
         bitmapdraw = (BitmapDrawable)getResources().getDrawable(R.mipmap.drone_marker);
@@ -153,13 +174,19 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         b3 = bitmapDrone3.getBitmap();
         drone3Marker = Bitmap.createScaledBitmap(b3, width, height, false);
 
+        //record flight data
+        CSVInitialization();
 
         //TEMP
         COM = "0";
         RADIUS = "000";
-        GPS_ALT = "000003";
-        GPS_LAT = "00000000000";
-        GPS_LON = "00000000000";
+        GPS_ALT = new String[]{"000001","000002","000003"};
+        GPS_LAT = new String[]{"00000000001","00000000002","00000000003"};
+        GPS_LON = new String[]{"00000000001","00000000002","00000000003"};
+        BATTERY = new String[]{"100","100","100"};
+        CON = new String[NUMBER_OF_DRONES];
+        YAW = new String[NUMBER_OF_DRONES];
+        ACK = new String[NUMBER_OF_DRONES];
 
         user_loc = (TextView) this.findViewById(R.id.user_loc);
         drone1_loc = (TextView) this.findViewById(R.id.drone_1_loc);
@@ -230,19 +257,36 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         imageCaptureButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Bitmap bitmap = droneCam2.getDrawingCache();
+                //create folder for saved image
+                String folder= "PIGS";
+
+                File f = new File(Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_PICTURES
+                ).getAbsolutePath(), folder);
+                if (!f.exists()) {
+                    f.mkdirs();
+                }
+                //capture image
+                Bitmap bitmap = Bitmap.createBitmap(droneCam2.getMeasuredWidth(), droneCam2.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
+                Canvas bitmapHolder = new Canvas(bitmap);
+                droneCam2.draw(bitmapHolder);
                 try {
-                    String fileName = Environment.getExternalStorageDirectory().getPath() + "/webview_screenshot.jpg";
+                    String fileName = Environment.getExternalStoragePublicDirectory(
+                            Environment.DIRECTORY_PICTURES
+                    ).getAbsolutePath() + "/PIGS/webview_screenshot.jpg";
+                            //dronesAutoActivity.this.getExternalFilesDir(null).getAbsolutePath() + "/webview_screenshot.jpg";
                     FileOutputStream fos = new FileOutputStream(fileName);
                     //get bitmap
                     bitmap.compress(Bitmap.CompressFormat.JPEG, 70, fos);
                     bitmap.recycle();
                     fos.close();
-                    Toast.makeText(dronesAutoActivity.this, "image saved", Toast.LENGTH_LONG).show();
+                    Toast.makeText(dronesAutoActivity.this, "image saved at" + Environment.getExternalStoragePublicDirectory(
+                            Environment.DIRECTORY_PICTURES
+                    ).getAbsolutePath() + "/PIGS", Toast.LENGTH_LONG).show();
                 } catch (Exception e) {
                     Log.e(TAG, e.getMessage());
                 } finally {
-                    bitmap.recycle();
+                    //bitmap.recycle();
                 }
             }
         });
@@ -273,6 +317,14 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
                 }
 
                 Toast.makeText(dronesAutoActivity.this, "Command Stop", Toast.LENGTH_SHORT).show();
+                //Test remove later [TODO]
+                updateInfo(new String(new char[40]).replace("\0", "0"));
+                try {
+                    createCSVFile();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                    Toast.makeText(dronesAutoActivity.this, "Create CSV Failed", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
@@ -335,7 +387,7 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
             @Override
             public void onClick(View v) {
                 droneCam2.loadUrl(drone1url);
-
+                currentDrone = 0;
                 Toast.makeText(dronesAutoActivity.this, "Switch to drone 1 camera", Toast.LENGTH_SHORT).show();
             }
         });
@@ -344,7 +396,7 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
             @Override
             public void onClick(View v) {
                 droneCam2.loadUrl(drone2url);
-
+                currentDrone = 1;
                 Toast.makeText(dronesAutoActivity.this, "Switch to drone 2 camera", Toast.LENGTH_SHORT).show();
             }
         });
@@ -353,14 +405,15 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
             @Override
             public void onClick(View v) {
                 droneCam2.loadUrl(drone3url);
-
+                currentDrone = 2;
                 Toast.makeText(dronesAutoActivity.this, "Switch to drone 3 camera", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    public void changeBatteryInfo(String num){
-        batteryView.setText("Battery Level: "+num+"%");
+    public void changeBatteryInfo(String num, int droneID){
+        if(droneID == currentDrone)
+            batteryView.setText("Battery Level: "+num+"%");
     }
 
     public String commandPack(String command){
@@ -513,41 +566,42 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
     private void updateInfo(String msg){
         //Toast.makeText(dronesAutoActivity.this, msg, Toast.LENGTH_SHORT).show();
         //Battery Type
-        if(msg.length()<39) { //Invalid Input
-            ACK = "INVALID INPUT";
+        if(msg.length()<40) { //Invalid Input
+            //ACK = "INVALID INPUT";
             return;
         }
-        ACK = msg.substring(0,1);
-        BATTERY = msg.substring(1,4);
-        GPS_LAT = msg.substring(4,15);
-        GPS_LON = msg.substring(15,26);
-        GPS_ALT = msg.substring(26,32);
-        YAW = msg.substring(32,38);
-        CON = msg.substring(38,39);
+
+        int droneID = Integer.parseInt(msg.substring(39,40));
+
+        ACK[droneID] = msg.substring(0,1);
+        BATTERY[droneID] = msg.substring(1,4);
+        GPS_LAT[droneID] = msg.substring(4,15);
+        GPS_LON[droneID] = msg.substring(15,26);
+        GPS_ALT[droneID] = msg.substring(26,32);
+        YAW[droneID] = msg.substring(32,38);
+        CON[droneID] = msg.substring(38,39);
+
+        updateLocationOnMap(droneID);
         // processing data
         //try
         //lat = Double.parseDouble(GPS_LAT);
         //longt = Double.parseDouble(GPS_LON);
         // Debug Info
-        debug1.setText("ACK: "+ACK);
-        debug2.setText("CON: "+CON);
-        debug3.setText("GPS_LAT: "+GPS_LAT);
-        debug4.setText("GPS_LON: "+GPS_LON);
-        changeBatteryInfo(BATTERY);
+        changeBatteryInfo(BATTERY[droneID],droneID);
+        updateCSVFile(droneID);
+        debug1.setText("ACK: "+ACK[droneID]);
+        debug2.setText("CON: "+CON[droneID]);
+        debug3.setText("GPS_LAT: "+GPS_LAT[droneID]);
+        debug4.setText("GPS_LON: "+GPS_LON[droneID]);
     }
 
     //update Location on Google Map based on the Location Info
-    private void updateLocationOnMap(String loc){
-        String type = loc.substring(0,1);
-        String latstr = loc.substring(1,12);
-        String longtstr = loc.substring(13);
-        lat = Double.parseDouble(latstr);
-        longt = Double.parseDouble(longtstr);
+    private void updateLocationOnMap(int droneID){
 
-        switch (type){
-            case "a":{ //Drone 1
+        switch (droneID){
+            case 0:{ //Drone 1
                 drone1LatLng = new LatLng(lat,longt);
-                drone1_loc.setText(latstr.substring(0,8) + "," + longtstr.substring(0,8));
+                drone1_loc.setText(GPS_LAT[droneID].substring(0,8) + "," + GPS_LON[droneID].substring(0,8));
                 if(Drone1Marker!=null)
                     Drone1Marker.remove();
                 Drone1Marker = mMap.addMarker(new MarkerOptions()
@@ -556,9 +610,9 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
                         .position(drone1LatLng).title("Current Drone 1 Location"));
                 break;
             }
-            case "b":{ //Drone 2
+            case 1:{ //Drone 2
                 drone2LatLng = new LatLng(lat,longt);
-                drone2_loc.setText(latstr.substring(0,8) + "," + longtstr.substring(0,8));
+                drone2_loc.setText(GPS_LAT[droneID].substring(0,8) + "," + GPS_LON[droneID].substring(0,8));
                 if(Drone2Marker!=null)
                     Drone2Marker.remove();
                 Drone2Marker = mMap.addMarker(new MarkerOptions()
@@ -567,9 +621,9 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
                         .position(drone2LatLng).title("Current Drone 2 Location"));
                 break;
             }
-            case "c":{ //Drone 3
+            case 2:{ //Drone 3
                 drone3LatLng = new LatLng(lat,longt);
-                drone3_loc.setText(latstr.substring(0,8) + "," + longtstr.substring(0,8));
+                drone3_loc.setText(GPS_LAT[droneID].substring(0,8) + "," + GPS_LON[droneID].substring(0,8));
                 if(Drone3Marker!=null)
                     Drone3Marker.remove();
                 Drone3Marker = mMap.addMarker(new MarkerOptions()
@@ -641,6 +695,61 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
                 }
             });
         }
+    }
+
+    private void CSVInitialization(){
+        csvFlightData = new StringBuffer();
+        String[] title ={"time","droneID","Latitude","Longtitude","Altitude","Battery"};
+        for(int i = 0; i < title.length; i++){
+            csvFlightData.append(title[i]+",");
+        }
+    }
+
+    private void updateCSVFile(int droneID){
+        csvFlightData.append("\n");
+        String[] droneData ={(new java.sql.Timestamp(System.currentTimeMillis())).toString(),String.valueOf(droneID),GPS_LAT[droneID],GPS_LON[droneID],GPS_ALT[droneID],BATTERY[droneID]};
+        for(int i = 0; i < droneData.length; i++){
+            csvFlightData.append(droneData[i]+",");
+        }
+    }
+
+    private void createCSVFile() throws FileNotFoundException {
+        //create folder for csv
+        String folder= "PIGSrecords";
+
+        File f = new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOCUMENTS
+        ).getAbsolutePath(), folder);
+        if (!f.exists()) {
+            f.mkdirs();
+        }
+        String fileName = "flight_record_"+(new Long(System.currentTimeMillis()/1000)).toString()+".csv";
+        try {
+            FileOutputStream out = openFileOutput(fileName, Context.MODE_PRIVATE);
+            out.write((csvFlightData.toString().getBytes()));
+            out.close();
+            File fileLocation = new File(Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_DOCUMENTS
+            ).getAbsolutePath()+"/PIGSrecords", fileName);
+
+            FileOutputStream fos = new FileOutputStream(fileLocation);
+            fos.write(csvFlightData.toString().getBytes());
+            Toast.makeText(dronesAutoActivity.this, "Create CSV Succeed", Toast.LENGTH_SHORT).show();
+            /*
+            Uri path = Uri.fromFile(fileLocation);
+            Intent fileIntent = new Intent(Intent.ACTION_SEND);
+            fileIntent.setType("text/csv");
+            fileIntent.putExtra(Intent.EXTRA_SUBJECT, fileName);
+            fileIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            fileIntent.putExtra(Intent.EXTRA_STREAM, path);
+            startActivity(Intent.createChooser(fileIntent, "output data"));
+            */
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.w(TAG, "makeCSV: "+e.toString());
+        }
+
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
