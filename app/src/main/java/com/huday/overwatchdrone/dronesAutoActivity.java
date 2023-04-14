@@ -3,12 +3,14 @@ package com.huday.overwatchdrone;
 import static android.content.ContentValues.TAG;
 
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import android.Manifest;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -26,9 +28,11 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.Button;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -60,12 +64,14 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
     final private static int MY_PERMISSION_ACCESS_FINE_LOCATION = 514;
     final private static int MY_PERMISSION_ACCESS_BACKGROUND_LOCATION = 1919;
 
+    final private static int DEFAULT_ALTITUDE_VAL = 3;
+
     final private static int NUMBER_OF_DRONES = 3;
 
-    final static String drone1url = "http://192.168.0.100:8081/cam.mjpg";
-    //final static String drone1url = "https://www.huday.su";
-    final static String drone2url = "http://192.168.0.100:8082/cam.mjpg";
-    final static String drone3url = "http://192.168.0.100:8083/cam.mjpg";
+    final static String drone1url = "http://192.168.0.101:8081/cam.mjpg";
+    //final static String drone1url = "https://www.independent.com/wp-content/uploads/2021/05/ucsb-1.jpeg?w=1536";
+    final static String drone2url = "http://192.168.0.101:8082/cam.mjpg";
+    final static String drone3url = "http://192.168.0.101:8083/cam.mjpg";
 
     private GoogleMap mMap;
     LocationManager locationManager;
@@ -76,15 +82,19 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
     double lat, longt;
 
     private String[] ACK,BATTERY,GPS_LAT,GPS_LON,GPS_ALT,YAW,CON; //from drone
-    private String COM,RADIUS,P_GPS_LAT,P_GPS_LON; //from phone
+    private String COM,RADIUS,SEND_GPS_LAT,SEND_GPS_LON,SEND_GPS_ALT,P_GPS_LAT,P_GPS_LON; //from phone
 
     String locationProvider;
+
+    Thread myThread;
 
     //drone log recorder
     StringBuffer csvFlightData;
 
     //Camera 0, 1, 2
     int currentDrone;
+
+    int altitudeValue = DEFAULT_ALTITUDE_VAL;
 
     //Drone Marker
     int height = 80;
@@ -133,7 +143,7 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         final FloatingActionButton focusButton = (FloatingActionButton) this.findViewById(R.id.focusButton);
         final FloatingActionButton drone1FocusButton = (FloatingActionButton) this.findViewById(R.id.drone1FocusButton);
         final FloatingActionButton drone2FocusButton = (FloatingActionButton) this.findViewById(R.id.drone2FocusButton);
-        final FloatingActionButton drone3FocusButton = (FloatingActionButton) this.findViewById(R.id.drone3FocusButton);
+        final FloatingActionButton altitudeButton = (FloatingActionButton) this.findViewById(R.id.drone3FocusButton);
         final FloatingActionButton imageCaptureButton = (FloatingActionButton) this.findViewById(R.id.imageCaptureButton);
 
         btnConnectSystem = (Button) this.findViewById(R.id.btnConnectSystem);
@@ -188,6 +198,8 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         YAW = new String[NUMBER_OF_DRONES];
         ACK = new String[NUMBER_OF_DRONES];
 
+        SEND_GPS_ALT = "000003";
+
         user_loc = (TextView) this.findViewById(R.id.user_loc);
         drone1_loc = (TextView) this.findViewById(R.id.drone_1_loc);
         drone2_loc = (TextView) this.findViewById(R.id.drone_2_loc);
@@ -199,7 +211,7 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         debug3 = (TextView) this.findViewById(R.id.textDebug3);
         debug4 = (TextView) this.findViewById(R.id.textDebug4);
 
-        Thread myThread = new Thread(new ServerForPC(1919));
+        myThread = new Thread(new ServerForPC(1919));
         myThread.start();
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -242,15 +254,18 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
                 Toast.makeText(dronesAutoActivity.this, "Focus on Drone 2", Toast.LENGTH_SHORT).show();
             }
         });
-
-        drone3FocusButton.setOnClickListener(new View.OnClickListener() {
+        
+        
+        altitudeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //Intent intent = new Intent(dronesAutoActivity.this, dronesManualActivity.class);
                 //startActivity(intent);
-                if(drone3LatLng != null)
-                mMap.moveCamera(CameraUpdateFactory.newLatLng(drone3LatLng));
-                Toast.makeText(dronesAutoActivity.this, "Focus on Drone 3", Toast.LENGTH_SHORT).show();
+                //if(drone3LatLng != null)
+                //mMap.moveCamera(CameraUpdateFactory.newLatLng(drone3LatLng));
+                //Toast.makeText(dronesAutoActivity.this, "Focus on Drone 3", Toast.LENGTH_SHORT).show();
+
+                altitudeModifyDialog();
             }
         });
 
@@ -417,6 +432,7 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
     }
 
     public String commandPack(String command){
+        int droneID = 0;
         switch (command){
             case "LAND": COM = "0"; break;
             case "TAKEOFF": COM = "1"; break;
@@ -427,7 +443,10 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
             case "TRACKING": COM = "6"; break;
             default: COM = "0"; break;
         }
-        return COM+GPS_LAT+GPS_LON+GPS_ALT+RADIUS+P_GPS_LAT+P_GPS_LON;
+        if(SEND_GPS_LAT != null && SEND_GPS_LON != null && SEND_GPS_ALT != null)
+            return COM+GPS_LAT[droneID]+GPS_LON[droneID]+GPS_ALT[droneID]+RADIUS+P_GPS_LAT+P_GPS_LON;
+        else
+            return COM+SEND_GPS_LAT+SEND_GPS_LON+SEND_GPS_ALT+RADIUS+P_GPS_LAT+P_GPS_LON;
     }
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -462,7 +481,27 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
 
         mMap.setMyLocationEnabled(true);
 
+        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+            Marker commandLocationMarker;
 
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+
+                SEND_GPS_LAT = String.valueOf(latLng.latitude).substring(0,11);
+                SEND_GPS_LON = String.valueOf(latLng.longitude).substring(0,11);
+
+                if(commandLocationMarker != null){
+                    commandLocationMarker.remove();
+                }
+
+                commandLocationMarker = mMap.addMarker(new MarkerOptions()
+                        .icon(BitmapDescriptorFactory.fromBitmap(droneMapMarker))
+                        .snippet(SEND_GPS_LAT+","+SEND_GPS_LON)
+                        .position(latLng).title("Drone Command Location"));
+
+                Toast.makeText(dronesAutoActivity.this, "Drone Command Location Set", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         // Add a marker in Sydney and move the camera
         LatLng UCSB = new LatLng(34.413084, -119.840212);
@@ -518,6 +557,8 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         //}
     }
 
+
+
     @Override
     public void onProviderDisabled(String provider) {
     }
@@ -567,7 +608,7 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         //Toast.makeText(dronesAutoActivity.this, msg, Toast.LENGTH_SHORT).show();
         //Battery Type
         if(msg.length()<40) { //Invalid Input
-            //ACK = "INVALID INPUT";
+            ACK[0] = "INVALID INPUT";
             return;
         }
 
@@ -695,6 +736,17 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
                 }
             });
         }
+
+        // Method to close the socket
+        public void closeSocket() {
+            try {
+                if (serverSocket != null && !serverSocket.isClosed()) {
+                    serverSocket.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private void CSVInitialization(){
@@ -713,7 +765,7 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         }
     }
 
-    private void createCSVFile() throws FileNotFoundException {
+    public void createCSVFile() throws FileNotFoundException {
         //create folder for csv
         String folder= "PIGSrecords";
 
@@ -752,6 +804,56 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
 
     }
 
+    public void altitudeModifyDialog(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(dronesAutoActivity.this);
+
+        builder.setMessage("Set new Altitude for drones")
+                .setTitle("Altitude Modification");
+
+        LayoutInflater inflater = this.getLayoutInflater();
+        View view=inflater.inflate(R.layout.altitude_dialog,null);
+        builder.setView(view);
+        SeekBar seekBar = (SeekBar) view.findViewById(R.id.seekBar);
+        TextView seekBarText = (TextView) view.findViewById(R.id.seekBarText);
+
+        seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                seekBarText.setText("Current Value:" + progress);
+                altitudeValue = progress;
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+        // Add the buttons
+        builder.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+
+                SEND_GPS_ALT = String.format("%06d",altitudeValue);
+                Toast.makeText(dronesAutoActivity.this, "Altitude Set to: "+SEND_GPS_ALT, Toast.LENGTH_SHORT).show();
+                // User clicked OK button
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User cancelled the dialog
+            }
+        });
+        // Set other dialog properties
+
+        // Create the AlertDialog
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onStart() throws SecurityException {
@@ -785,8 +887,15 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
     @Override
     protected void onStop() {
         super.onStop();
-
+        try {
+            createCSVFile();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            Toast.makeText(dronesAutoActivity.this, "Create CSV Failed", Toast.LENGTH_SHORT).show();
+        }
+        ((ServerForPC) myThread).closeSocket();
         locationManager.removeUpdates(this);
+
         //mLocationManager.unregisterGnssStatusCallback(mGnssStatusCallback);
     }
 
