@@ -13,9 +13,15 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Observable;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
+import android.icu.util.Calendar;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -32,19 +38,26 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.api.Result;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.huday.overwatchdrone.detector.Yolov5TFLiteDetector;
+import com.huday.overwatchdrone.utils.ImageProcess;
+import com.huday.overwatchdrone.utils.Recognition;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -56,8 +69,14 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.Time;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import com.huday.overwatchdrone.detector.Yolov5TFLiteDetector;
 
 public class dronesAutoActivity extends AppCompatActivity implements LocationListener, OnMapReadyCallback {
     final private static int MY_PERMISSION_ACCESS_COURSE_LOCATION = 114;
@@ -68,10 +87,12 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
 
     final private static int NUMBER_OF_DRONES = 3;
 
-    final static String drone1url = "http://192.168.0.101:8081/cam.mjpg";
-    //final static String drone1url = "https://www.independent.com/wp-content/uploads/2021/05/ucsb-1.jpeg?w=1536";
+    //final static String drone1url = "http://192.168.0.101:8081/cam.mjpg";
+    final static String drone1url = "http://192.168.0.145:8081/cam.mjpg";
     final static String drone2url = "http://192.168.0.101:8082/cam.mjpg";
     final static String drone3url = "http://192.168.0.101:8083/cam.mjpg";
+
+    private FrameLayout flc;
 
     private GoogleMap mMap;
     LocationManager locationManager;
@@ -121,9 +142,17 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
     //drone Communication
     tcpClient mTcpClient;
 
+    SimpleDateFormat simpleDateFormat;
+
     //Camera of drone
     private WebView droneCam1;
     private WebView droneCam2;
+
+    private ImageView boxLabelCanvas;
+    //CV
+    ImageProcess imageProcess;
+    Yolov5TFLiteDetector yolov5TFLiteDetector;
+    Thread cvThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -146,6 +175,7 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         final FloatingActionButton altitudeButton = (FloatingActionButton) this.findViewById(R.id.drone3FocusButton);
         final FloatingActionButton imageCaptureButton = (FloatingActionButton) this.findViewById(R.id.imageCaptureButton);
 
+        flc = (FrameLayout) this.findViewById(R.id.frameLayoutcamera);
         btnConnectSystem = (Button) this.findViewById(R.id.btnConnectSystem);
         bc1 = (Button) this.findViewById(R.id.btnC1);
         bc2 = (Button) this.findViewById(R.id.btnC2);
@@ -184,8 +214,15 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         b3 = bitmapDrone3.getBitmap();
         drone3Marker = Bitmap.createScaledBitmap(b3, width, height, false);
 
+        simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+
         //record flight data
         CSVInitialization();
+
+        //CV
+        boxLabelCanvas = (ImageView)this.findViewById(R.id.box_label_canvas);
+        imageProcess = new ImageProcess();
+        initModel("yolov5n");
 
         //TEMP
         COM = "0";
@@ -281,6 +318,9 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
                 if (!f.exists()) {
                     f.mkdirs();
                 }
+                Calendar calendar = Calendar.getInstance();
+                Date now = calendar.getTime();
+                String timestamp = simpleDateFormat.format(now);
                 //capture image
                 Bitmap bitmap = Bitmap.createBitmap(droneCam2.getMeasuredWidth(), droneCam2.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
                 Canvas bitmapHolder = new Canvas(bitmap);
@@ -288,7 +328,7 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
                 try {
                     String fileName = Environment.getExternalStoragePublicDirectory(
                             Environment.DIRECTORY_PICTURES
-                    ).getAbsolutePath() + "/PIGS/webview_screenshot.jpg";
+                    ).getAbsolutePath() + "/PIGS/webview_screenshot_"+timestamp.replaceAll(":", "_")+".jpg";
                             //dronesAutoActivity.this.getExternalFilesDir(null).getAbsolutePath() + "/webview_screenshot.jpg";
                     FileOutputStream fos = new FileOutputStream(fileName);
                     //get bitmap
@@ -333,13 +373,7 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
 
                 Toast.makeText(dronesAutoActivity.this, "Command Stop", Toast.LENGTH_SHORT).show();
                 //Test remove later [TODO]
-                updateInfo(new String(new char[40]).replace("\0", "0"));
-                try {
-                    createCSVFile();
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                    Toast.makeText(dronesAutoActivity.this, "Create CSV Failed", Toast.LENGTH_SHORT).show();
-                }
+                YOLODetection();
             }
         });
 
@@ -481,6 +515,15 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
 
         mMap.setMyLocationEnabled(true);
 
+        final float zoomSize = 1.31f;
+        LatLng sbMap = new LatLng(34.41567, -119.8455);
+        // Add UCSB map layer
+        GroundOverlayOptions UCSBMap = new GroundOverlayOptions()
+                .image(BitmapDescriptorFactory.fromResource(R.mipmap.ucsb_map))
+                .transparency(0.1f)
+                .position(sbMap, 2098f/zoomSize, 3275f/zoomSize);
+        mMap.addGroundOverlay(UCSBMap);
+
         mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
             Marker commandLocationMarker;
 
@@ -520,9 +563,10 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
 
         double latitude = 0;
         double longitude = 0;
-        latitude = location.getLatitude();
-        longitude = location.getLongitude();
-
+        if(location!=null) {
+            latitude = location.getLatitude();
+            longitude = location.getLongitude();
+        }
         // Update user location
         user_loc.setText(String.format("%.4f",latitude)+","+String.format("%.4f",longitude));
         P_GPS_LON = (Double.toString(longitude)+"00000").substring(0,11);
@@ -852,6 +896,83 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         // Create the AlertDialog
         AlertDialog dialog = builder.create();
         dialog.show();
+    }
+
+    private void initModel(String modelName) {
+        // 加载模型
+        try {
+            this.yolov5TFLiteDetector = new Yolov5TFLiteDetector();
+            this.yolov5TFLiteDetector.setModelFile(modelName);
+//            this.yolov5TFLiteDetector.addNNApiDelegate();
+            this.yolov5TFLiteDetector.addGPUDelegate();
+            this.yolov5TFLiteDetector.initialModel(this);
+            Log.i("model", "Success loading model" + this.yolov5TFLiteDetector.getModelFile());
+        } catch (Exception e) {
+            Log.e("image", "load model error: " + e.getMessage() + e.toString());
+        }
+    }
+
+    private void YOLODetection(){
+
+        long start = System.currentTimeMillis();
+        int imageHeight = flc.getHeight();
+        int imageWidth = flc.getWidth();
+
+        Bitmap imageBitmap = Bitmap.createBitmap(droneCam2.getWidth(), droneCam2.getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas bitmapHolder = new Canvas(imageBitmap);
+        droneCam2.draw(bitmapHolder);
+
+        // 原图bitmap
+        //Bitmap imageBitmap = Bitmap.createBitmap(imageWidth, imageHeight, Bitmap.Config.ARGB_8888);
+        //imageBitmap.setPixels(rgbBytes, 0, imageWidth, 0, 0, imageWidth, imageHeight);
+
+        // 模型输入的bitmap
+        Matrix previewToModelTransform =
+                imageProcess.getTransformationMatrix(
+                        imageBitmap.getWidth(), imageBitmap.getHeight(),
+                        yolov5TFLiteDetector.getInputSize().getWidth(),
+                        yolov5TFLiteDetector.getInputSize().getHeight(),
+                        0, false);
+        Bitmap modelInputBitmap = Bitmap.createBitmap(imageBitmap, 0, 0,
+                imageBitmap.getWidth(), imageBitmap.getHeight(),
+                previewToModelTransform, false);
+
+        Matrix modelToPreviewTransform = new Matrix();
+        previewToModelTransform.invert(modelToPreviewTransform);
+
+        ArrayList<Recognition> recognitions = yolov5TFLiteDetector.detect(modelInputBitmap);
+//            ArrayList<Recognition> recognitions = yolov5TFLiteDetector.detect(imageBitmap);
+
+        Bitmap emptyCropSizeBitmap = Bitmap.createBitmap(imageWidth, imageHeight,  Bitmap.Config.ARGB_8888);
+        Canvas cropCanvas = new Canvas(emptyCropSizeBitmap);
+//            Paint white = new Paint();
+//            white.setColor(Color.WHITE);
+//            white.setStyle(Paint.Style.FILL);
+//            cropCanvas.drawRect(new RectF(0,0,previewWidth, previewHeight), white);
+        // 边框画笔
+        Paint boxPaint = new Paint();
+        boxPaint.setStrokeWidth(5);
+        boxPaint.setStyle(Paint.Style.STROKE);
+        boxPaint.setColor(Color.RED);
+        // 字体画笔
+        Paint textPain = new Paint();
+        textPain.setTextSize(50);
+        textPain.setColor(Color.RED);
+        textPain.setStyle(Paint.Style.FILL);
+
+        for (Recognition res : recognitions) {
+            RectF location = res.getLocation();
+            String label = res.getLabelName();
+            float confidence = res.getConfidence();
+            modelToPreviewTransform.mapRect(location);
+            cropCanvas.drawRect(location, boxPaint);
+            cropCanvas.drawText(label + ":" + String.format("%.2f", confidence), location.left, location.top, textPain);
+        }
+        long end = System.currentTimeMillis();
+        long costTime = (end - start);
+
+        //set Bitmap
+        boxLabelCanvas.setImageBitmap(emptyCropSizeBitmap);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
