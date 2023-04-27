@@ -87,8 +87,8 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
 
     final private static int NUMBER_OF_DRONES = 3;
 
-    //final static String drone1url = "http://192.168.0.101:8081/cam.mjpg";
-    final static String drone1url = "http://192.168.0.145:8081/cam.mjpg";
+    final static String drone1url = "http://192.168.0.101:8081/cam.mjpg";
+//    final static String drone1url = "http://192.168.0.145:8081/cam.mjpg";
     final static String drone2url = "http://192.168.0.101:8082/cam.mjpg";
     final static String drone3url = "http://192.168.0.101:8083/cam.mjpg";
 
@@ -222,7 +222,8 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         //CV
         boxLabelCanvas = (ImageView)this.findViewById(R.id.box_label_canvas);
         imageProcess = new ImageProcess();
-        initModel("yolov5n");
+        initModel("yolov5s");
+
 
         //TEMP
         COM = "0";
@@ -235,7 +236,7 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         YAW = new String[NUMBER_OF_DRONES];
         ACK = new String[NUMBER_OF_DRONES];
 
-        SEND_GPS_ALT = "000003";
+        SEND_GPS_ALT = "000000";
 
         user_loc = (TextView) this.findViewById(R.id.user_loc);
         drone1_loc = (TextView) this.findViewById(R.id.drone_1_loc);
@@ -374,6 +375,7 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
                 Toast.makeText(dronesAutoActivity.this, "Command Stop", Toast.LENGTH_SHORT).show();
                 //Test remove later [TODO]
                 YOLODetection();
+
             }
         });
 
@@ -472,12 +474,12 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
             case "TAKEOFF": COM = "1"; break;
             case "STOP": COM = "2"; break;
             case "ORBIT": COM = "3"; break;
-            case "EXPLORE": COM = "4"; break;
+            case "EXPLORE": COM = "2"; break;
             case "RADAR": COM = "5"; break;
             case "TRACKING": COM = "6"; break;
             default: COM = "0"; break;
         }
-        if(SEND_GPS_LAT != null && SEND_GPS_LON != null && SEND_GPS_ALT != null)
+        if(SEND_GPS_LAT == null || SEND_GPS_LON == null || SEND_GPS_ALT == null)
             return COM+GPS_LAT[droneID]+GPS_LON[droneID]+GPS_ALT[droneID]+RADIUS+P_GPS_LAT+P_GPS_LON;
         else
             return COM+SEND_GPS_LAT+SEND_GPS_LON+SEND_GPS_ALT+RADIUS+P_GPS_LAT+P_GPS_LON;
@@ -530,8 +532,8 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
             @Override
             public void onMapLongClick(LatLng latLng) {
 
-                SEND_GPS_LAT = String.valueOf(latLng.latitude).substring(0,11);
-                SEND_GPS_LON = String.valueOf(latLng.longitude).substring(0,11);
+                SEND_GPS_LAT = String.format("%012.8f",latLng.latitude).substring(0,12).replace(".","");
+                SEND_GPS_LON = String.format("%012.8f",latLng.longitude).substring(0,12).replace(".","");
 
                 if(commandLocationMarker != null){
                     commandLocationMarker.remove();
@@ -569,8 +571,8 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         }
         // Update user location
         user_loc.setText(String.format("%.4f",latitude)+","+String.format("%.4f",longitude));
-        P_GPS_LON = (Double.toString(longitude)+"00000").substring(0,11);
-        P_GPS_LAT = (Double.toString(latitude)+"00000").substring(0,11);
+        P_GPS_LON = String.format("%012.8f",longitude).substring(0,12).replace(".","");
+        P_GPS_LAT = String.format("%012.8f",latitude).substring(0,12).replace(".","");
 
         cur = new LatLng(location.getLatitude(),location.getLongitude());
         currentLocation = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)).position(cur).title("User Location"));
@@ -590,8 +592,8 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         //Toast.makeText(dronesAutoActivity.this, "Location Changed", Toast.LENGTH_SHORT).show();
         // Update user location
         user_loc.setText(String.format("%.4f",latitude)+","+String.format("%.4f",longitude));
-        P_GPS_LON = String.format("%.8f",longitude).substring(0,11);
-        P_GPS_LAT = String.format("%.8f",latitude).substring(0,11);
+        P_GPS_LON = String.format("%012.8f",longitude).substring(0,12).replace(".","");
+        P_GPS_LAT = String.format("%012.8f",latitude).substring(0,12).replace(".","");
 
         cur = new LatLng(latitude, longitude);
         currentLocation = mMap.addMarker(new MarkerOptions().icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)).position(cur).title("User Location"));
@@ -648,7 +650,7 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         }
     }
 
-    private void updateInfo(String msg){
+    private void updateInfo(String msg) throws NumberFormatException {
         //Toast.makeText(dronesAutoActivity.this, msg, Toast.LENGTH_SHORT).show();
         //Battery Type
         if(msg.length()<40) { //Invalid Input
@@ -656,7 +658,7 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
             return;
         }
 
-        int droneID = Integer.parseInt(msg.substring(39,40));
+        int droneID = 0;
 
         ACK[droneID] = msg.substring(0,1);
         BATTERY[droneID] = msg.substring(1,4);

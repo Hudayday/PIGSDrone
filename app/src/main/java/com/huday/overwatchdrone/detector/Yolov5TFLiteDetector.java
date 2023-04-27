@@ -44,8 +44,8 @@ public class Yolov5TFLiteDetector {
     private final float DETECT_THRESHOLD = 0.25f;
     private final float IOU_THRESHOLD = 0.45f;
     private final float IOU_CLASS_DUPLICATED_THRESHOLD = 0.7f;
-//    private final String MODEL_YOLOV5S = "yolov5s-fp16-320-metadata.tflite";
-    private final String MODEL_YOLOV5S = "yolov5s-dynamic.tflite";
+    private final String MODEL_YOLOV5S = "yolov5s-fp16-320-metadata.tflite";
+//    private final String MODEL_YOLOV5S = "yolov5s-dynamic.tflite";
 //    private final String MODEL_YOLOV5S = "mobilenet_v1_1.0_224_quant.tflite";
     private final String MODEL_YOLOV5N =  "yolov5n-fp16-320.tflite";
     private final String MODEL_YOLOV5M = "yolov5m-fp16-320.tflite";
