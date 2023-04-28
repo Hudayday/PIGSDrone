@@ -541,7 +541,7 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
 
                 commandLocationMarker = mMap.addMarker(new MarkerOptions()
                         .icon(BitmapDescriptorFactory.fromBitmap(droneMapMarker))
-                        .snippet(SEND_GPS_LAT+","+SEND_GPS_LON)
+                        .snippet(String.format("%012.8f",latLng.latitude)+","+String.format("%012.8f",latLng.longitude))
                         .position(latLng).title("Drone Command Location"));
 
                 Toast.makeText(dronesAutoActivity.this, "Drone Command Location Set", Toast.LENGTH_SHORT).show();
@@ -551,10 +551,10 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
         // Add a marker in Sydney and move the camera
         LatLng UCSB = new LatLng(34.413084, -119.840212);
 
-        mMap.addMarker(new MarkerOptions()
-                .icon(BitmapDescriptorFactory.fromBitmap(droneMapMarker))
-                .snippet("Test Drone")
-                .position(UCSB).title("Test Drone"));
+//        mMap.addMarker(new MarkerOptions()
+//                .icon(BitmapDescriptorFactory.fromBitmap(droneMapMarker))
+//                .snippet("Test Drone")
+//                .position(UCSB).title("Test Drone"));
 
 
         mMap.moveCamera(CameraUpdateFactory.newLatLng(UCSB));
@@ -660,13 +660,13 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
 
         int droneID = 0;
 
-        ACK[droneID] = msg.substring(0,1);
-        BATTERY[droneID] = msg.substring(1,4);
-        GPS_LAT[droneID] = msg.substring(4,15);
-        GPS_LON[droneID] = msg.substring(15,26);
-        GPS_ALT[droneID] = msg.substring(26,32);
-        YAW[droneID] = msg.substring(32,38);
-        CON[droneID] = msg.substring(38,39);
+        ACK[droneID] = msg.substring(1,2);
+        BATTERY[droneID] = msg.substring(2,5);
+        GPS_LAT[droneID] = msg.substring(5,16);
+        GPS_LON[droneID] = msg.substring(16,27);
+        GPS_ALT[droneID] = msg.substring(27,33);
+        YAW[droneID] = msg.substring(33,39);
+        CON[droneID] = msg.substring(39,40);
 
         updateLocationOnMap(droneID);
         // processing data
@@ -684,27 +684,28 @@ public class dronesAutoActivity extends AppCompatActivity implements LocationLis
 
     //update Location on Google Map based on the Location Info
     private void updateLocationOnMap(int droneID){
-
+        String latStr = GPS_LAT[droneID].substring(0,4)+"."+GPS_LAT[droneID].substring(4);
+        String longStr = GPS_LON[droneID].substring(0,4)+"."+GPS_LON[droneID].substring(4);
         switch (droneID){
             case 0:{ //Drone 1
-                drone1LatLng = new LatLng(lat,longt);
-                drone1_loc.setText(GPS_LAT[droneID].substring(0,8) + "," + GPS_LON[droneID].substring(0,8));
+                drone1LatLng = new LatLng(Double.parseDouble(latStr),Double.parseDouble(longStr));
+                drone1_loc.setText(latStr + "," + longStr);
                 if(Drone1Marker!=null)
                     Drone1Marker.remove();
                 Drone1Marker = mMap.addMarker(new MarkerOptions()
                         .icon(BitmapDescriptorFactory.fromBitmap(drone1Marker))
-                        .snippet("Drone 1")
+                        .snippet(latStr + "," + longStr)
                         .position(drone1LatLng).title("Current Drone 1 Location"));
                 break;
             }
             case 1:{ //Drone 2
-                drone2LatLng = new LatLng(lat,longt);
-                drone2_loc.setText(GPS_LAT[droneID].substring(0,8) + "," + GPS_LON[droneID].substring(0,8));
+                drone2LatLng = new LatLng(Double.parseDouble(latStr),Double.parseDouble(longStr));
+                drone2_loc.setText(latStr + "," + longStr);
                 if(Drone2Marker!=null)
                     Drone2Marker.remove();
                 Drone2Marker = mMap.addMarker(new MarkerOptions()
                         .icon(BitmapDescriptorFactory.fromBitmap(drone2Marker))
-                        .snippet("Drone 2")
+                        .snippet(latStr + "," + longStr)
                         .position(drone2LatLng).title("Current Drone 2 Location"));
                 break;
             }
